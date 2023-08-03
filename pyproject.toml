@@ -12,7 +12,9 @@ requires-python = ">=3.8,<4"
 # ADD NEW DEPENDENCIES HERE
 dependencies = [
     "autora-core",
+    "autora-synthetic",
     "scikit-learn",
+    "sympy"
 ]
 
 [project.optional-dependencies]

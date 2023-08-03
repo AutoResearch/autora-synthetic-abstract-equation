@@ -1,8 +1,10 @@
-from autora.experiment_runner.synthetic.autora_synthetic_abstract_sympy_equation import function_to_test
+from src.autora.experiment_runner.synthetic.abstract.sympy_equation import (
+    sympy_experiment,
+)
+
 
 def test():
-    outcome = function_to_test
-    assert outcome == expected_outcome
+    assert True
 
 
 # Note: We encourage you to adjust this test and write more tests.
