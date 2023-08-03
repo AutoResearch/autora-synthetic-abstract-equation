@@ -13,5 +13,5 @@ pip install -U autora["experiment-runner-synthetic-autora-synthetic-abstract-sym
 
 Check your installation by running:
 ```shell
-python -c "from autora.experiment_runner.synthetic.autora_synthetic_abstract_sympy_equation import Example"
+python -c "from autora.experiment_runner.synthetic.autora_synthetic_abstract_sympy_equation import sympy_experiment"
 ```
