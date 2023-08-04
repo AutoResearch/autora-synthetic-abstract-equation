@@ -11,12 +11,11 @@ from autora.experiment_runner.synthetic.utilities import SyntheticExperimentColl
 from autora.variable import DV, IV, VariableCollection
 
 
-def sympy_experiment(
-    # Add any configurable parameters with their defaults here:
+def equation_experiment(
     expression: Expr,
     X: Optional[List[IV]] = None,
     y: Optional[DV] = None,
-    name: str = "Sympy Experiment",
+    name: str = "Equation Experiment",
     added_noise: float = 0.001,
     random_state: int = 42,
     rename_output_columns: bool = True,
@@ -48,7 +47,7 @@ def sympy_experiment(
         >>> expr = x ** y
 
         Then we use this expression in our experiment
-        >>> experiment = sympy_experiment(expr)
+        >>> experiment = equation_experiment(expr)
 
         To run an experiment, we can either use a numpy array:
         >>> experiment.experiment_runner(np.array([[1, 1], [2 ,2], [2 ,3]]))
@@ -61,7 +60,7 @@ def sympy_experiment(
         will be sorted alphabetically.
         In the following case the first entry of the numpy array is still x:
         >>> expr = y ** x
-        >>> experiment = sympy_experiment(expr)
+        >>> experiment = equation_experiment(expr)
         >>> experiment.experiment_runner(np.array([[1, 1], [2, 2] , [2, 3]]))
                   x         y  observations
         0  1.000305  0.998960      0.998960
@@ -98,7 +97,7 @@ def sympy_experiment(
 
         Reinitialise the experiment with the domain and printing it
         >>> expr = x ** 2 + y ** 2
-        >>> experiment = sympy_experiment(expr, X = [variable_x, variable_y])
+        >>> experiment = equation_experiment(expr, X = [variable_x, variable_y])
         >>> experiment.domain() # doctest: +ELLIPSIS
         array([[-10.       , -10.       ],
                ...
@@ -219,14 +218,14 @@ def sympy_experiment(
     # The object which gets stored in the synthetic inventory
     collection = SyntheticExperimentCollection(
         name=name,
-        description=sympy_experiment.__doc__,
+        description=equation_experiment.__doc__,
         variables=variables,
         experiment_runner=experiment_runner,
         ground_truth=ground_truth,
         domain=domain,
         plotter=plotter,
         params=params,
-        factory_function=sympy_experiment,
+        factory_function=equation_experiment,
     )
     return collection
 
