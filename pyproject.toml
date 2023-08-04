@@ -1,7 +1,7 @@
 [project]
 # UPDATE THIS BEFORE PUBLISHING
-name = "autora_synthetic_abstract_sympy_equation"
-description = "An experiment runner that uses an arbitrary sympy function"
+name = "autora-synthetic-abstract-equation"
+description = "An experiment runner from arbitrary equations"
 authors = [{ name = "Younes Strittmatter", email = "younes_strtittmatter@brown.edu" }]
 dynamic = ["version"]
 
@@ -24,7 +24,7 @@ dev = [
 
 [project.urls]
 homepage = "http://www.empiricalresearch.ai"
-repository = "https://github.com/AutoResearch/autora-synthetic-abstract-sympy-equation"
+repository = "https://github.com/AutoResearch/autora-synthetic-abstract-equation"
 documentation = "https://autoresearch.github.io/autora/"
 
 
