@@ -151,9 +151,8 @@ def equation_experiment(
                 category=RuntimeWarning,
             )
 
-        x_ = x_ + rng.normal(0, added_noise_, size=x_.shape)
-
         y = f_numpy(*x_.T)
+        y += rng.normal(0, added_noise_, size=y.shape)
         if isinstance(x, pd.DataFrame):
             _res = pd.DataFrame(x_, columns=x_sorted.columns)
             res = x
