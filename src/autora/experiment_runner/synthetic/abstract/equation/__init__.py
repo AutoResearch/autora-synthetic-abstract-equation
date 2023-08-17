@@ -1,7 +1,7 @@
 import warnings
 from functools import partial
 from itertools import product
-from typing import List, Optional, Union
+from typing import List, Union
 
 import numpy as np
 import pandas as pd
@@ -43,36 +43,41 @@ def equation_experiment(
         >>> from sympy import symbols
         >>> x, y = symbols("x y")
 
+        We also have to define the independent and dependent variables:
+        >>> iv_x = IV(name='x', allowed_values=np.linspace(-10,10) ,value_range=(-10,10))
+        >>> iv_y = IV(name='y', allowed_values=np.linspace(-10,10) ,value_range=(-10,10))
+        >>> dv_z = DV(name='z')
+
         Now we can define an expression:
         >>> expr = x ** y
 
         Then we use this expression in our experiment
-        >>> experiment = equation_experiment(expr)
+        >>> experiment = equation_experiment(expr, [iv_x, iv_y], dv_z)
 
         To run an experiment, we can either use a numpy array:
         >>> experiment.experiment_runner(np.array([[1, 1], [2 ,2], [2 ,3]]))
-                  x         y  observations
-        0  1.000305  0.998960      1.000304
-        1  2.000750  2.000941      4.005614
-        2  1.998049  2.998698      7.969424
+           x  y         z
+        0  1  1  1.000305
+        1  2  2  3.998960
+        2  2  3  8.000750
 
         But we have to be carefull with the order of the arguments in the runner. The arguments
         will be sorted alphabetically.
         In the following case the first entry of the numpy array is still x:
         >>> expr = y ** x
-        >>> experiment = equation_experiment(expr)
+        >>> experiment = equation_experiment(expr, [iv_x, iv_y], dv_z)
         >>> experiment.experiment_runner(np.array([[1, 1], [2, 2] , [2, 3]]))
-                  x         y  observations
-        0  1.000305  0.998960      0.998960
-        1  2.000750  2.000941      4.005848
-        2  1.998049  2.998698      8.972943
+           x  y         z
+        0  1  1  1.000305
+        1  2  2  3.998960
+        2  2  3  9.000750
 
         We can be more secure by using Pandas Dataframes as an input:
         >>> experiment.experiment_runner(pd.DataFrame({'y':[1, 2, 2], 'x': [1, 2, 3]}))
-                  y         x  observations
-        0  0.999684  1.000128      0.999684
-        1  1.999147  1.999983      3.996542
-        2  2.000778  3.000879      8.014223
+           y  x         z
+        0  1  1  1.000941
+        1  2  2  3.998049
+        2  2  3  7.998698
 
         If we use columns in the dataframe, that are not part of the expression,
         we will get an error message:
@@ -81,30 +86,6 @@ def equation_experiment(
         ...
         Exception: Variables of expression y**x not found in columns of dataframe with columns\
  Index(['z', 'x'], dtype='object')
-
-        If we want to use additional functionality of the synthetic model like plotting, we need
-        to define a domain:
-        >>> variable_x = IV(
-        ... name="x",
-        ... allowed_values=np.linspace(-10, 10, 100),
-        ... value_range=(-10, 10),
-        ... )
-        >>> variable_y = IV(
-        ... name="y",
-        ... allowed_values=np.linspace(-10, 10, 100),
-        ... value_range=(-10, 10),
-        ... )
-
-        Reinitialise the experiment with the domain and printing it
-        >>> expr = x ** 2 + y ** 2
-        >>> experiment = equation_experiment(expr, X = [variable_x, variable_y])
-        >>> experiment.domain() # doctest: +ELLIPSIS
-        array([[-10.       , -10.       ],
-               ...
-               [ 10.       ,  10.       ]])
-
-        You can plot the experiment with
-        >>> experiment.plotter()
     """
 
     params = dict(
@@ -122,10 +103,12 @@ def equation_experiment(
 
     # Define variables
     variables = VariableCollection(
-        independent_variables=[X],
+        independent_variables=X,
         dependent_variables=[y],
     )
-    if not set([el.name for el in variables.independent_variables]).issubset(args):
+    if not set([el.name for el in variables.independent_variables]).issubset(
+        set([str(a) for a in args])
+    ):
         raise Exception(
             f"Independent variables {[iv.name for iv in X]} and symbols of the equation tree "
             f"{args} do not match."
@@ -135,7 +118,8 @@ def equation_experiment(
     rng = np.random.default_rng(random_state)
 
     def experiment_runner(
-            conditions: Union[pd.DataFrame, np.ndarray, np.recarray], added_noise_=added_noise
+        conditions: Union[pd.DataFrame, np.ndarray, np.recarray],
+        added_noise_=added_noise,
     ):
         """A function which simulates noisy observations."""
         x = conditions
@@ -157,8 +141,8 @@ def equation_experiment(
                 category=RuntimeWarning,
             )
 
-        y = f_numpy(*x_.T)
-        y += rng.normal(0, added_noise_, size=y.shape)
+        out = f_numpy(*x_.T)
+        out = out + rng.normal(0, added_noise_, size=out.shape)
         if isinstance(x, pd.DataFrame):
             _res = pd.DataFrame(x_, columns=x_sorted.columns)
             res = x
@@ -170,7 +154,7 @@ def equation_experiment(
             else:
                 res = pd.DataFrame(x_.T)
 
-        res["observations"] = y
+        res[y.name] = out
         return res
 
     ground_truth = partial(experiment_runner, added_noise_=0.0)
