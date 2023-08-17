@@ -124,6 +124,7 @@ def equation_experiment(
         """A function which simulates noisy observations."""
         x = conditions
         if isinstance(x, pd.DataFrame):
+            x = x.copy()
             if not set([el.name for el in args]).issubset(x.columns):
                 raise Exception(
                     f"Variables of expression {expression} "
