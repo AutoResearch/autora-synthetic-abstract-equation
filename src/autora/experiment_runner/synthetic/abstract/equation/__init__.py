@@ -13,8 +13,8 @@ from autora.variable import DV, IV, VariableCollection
 
 def equation_experiment(
     expression: Expr,
-    X: Optional[List[IV]] = None,
-    y: Optional[DV] = None,
+    X: List[IV],
+    y: DV,
     name: str = "Equation Experiment",
     added_noise: float = 0.001,
     random_state: int = 42,
@@ -125,14 +125,20 @@ def equation_experiment(
         independent_variables=[X],
         dependent_variables=[y],
     )
+    if not set([el.name for el in variables.independent_variables]).issubset(args):
+        raise Exception(
+            f"Independent variables {[iv.name for iv in X]} and symbols of the equation tree "
+            f"{args} do not match."
+        )
 
     # Define experiment runner
     rng = np.random.default_rng(random_state)
 
     def experiment_runner(
-        x: Union[pd.DataFrame, np.ndarray, np.recarray], added_noise_=added_noise
+            conditions: Union[pd.DataFrame, np.ndarray, np.recarray], added_noise_=added_noise
     ):
         """A function which simulates noisy observations."""
+        x = conditions
         if isinstance(x, pd.DataFrame):
             if not set([el.name for el in args]).issubset(x.columns):
                 raise Exception(
@@ -227,4 +233,3 @@ def equation_experiment(
         factory_function=equation_experiment,
     )
     return collection
-
