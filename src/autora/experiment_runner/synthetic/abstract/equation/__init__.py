@@ -1,7 +1,7 @@
 import warnings
 from functools import partial
 from itertools import product
-from typing import List, Union
+from typing import List, Union, Optional
 
 import numpy as np
 import pandas as pd
@@ -16,9 +16,8 @@ def equation_experiment(
     X: List[IV],
     y: DV,
     name: str = "Equation Experiment",
-    added_noise: float = 0.001,
-    random_state: int = 42,
     rename_output_columns: bool = True,
+    random_state: Optional[int] = None,
 ):
     """
 
@@ -30,8 +29,7 @@ def equation_experiment(
         expression: A sympy expression. The expression is interpreted as definition for a function
         X: The domain of independent variables
         y: The codomain of the dependent variables
-        name: Name of the experimen
-        added_noise: Standard deviation of gaussian noise added to output
+        name: Name of the experiment
         random_state: Seed for random number generator
         rename_output_columns: If true, rename the columns of the output DataFrame based on the
             variable names in the expression.
@@ -52,32 +50,32 @@ def equation_experiment(
         >>> expr = x ** y
 
         Then we use this expression in our experiment
-        >>> experiment = equation_experiment(expr, [iv_x, iv_y], dv_z)
+        >>> experiment = equation_experiment(expr, [iv_x, iv_y], dv_z, random_state=42)
 
         To run an experiment, we can either use a numpy array:
         >>> experiment.experiment_runner(np.array([[1, 1], [2 ,2], [2 ,3]]))
            x  y         z
-        0  1  1  1.000305
-        1  2  2  3.998960
-        2  2  3  8.000750
+        0  1  1  1.003047
+        1  2  2  3.989600
+        2  2  3  8.007505
 
         But we have to be carefull with the order of the arguments in the runner. The arguments
         will be sorted alphabetically.
         In the following case the first entry of the numpy array is still x:
         >>> expr = y ** x
-        >>> experiment = equation_experiment(expr, [iv_x, iv_y], dv_z)
+        >>> experiment = equation_experiment(expr, [iv_x, iv_y], dv_z, random_state=42)
         >>> experiment.experiment_runner(np.array([[1, 1], [2, 2] , [2, 3]]))
            x  y         z
-        0  1  1  1.000305
-        1  2  2  3.998960
-        2  2  3  9.000750
+        0  1  1  1.003047
+        1  2  2  3.989600
+        2  2  3  9.007505
 
         We can be more secure by using Pandas Dataframes as an input:
         >>> experiment.experiment_runner(pd.DataFrame({'y':[1, 2, 2], 'x': [1, 2, 3]}))
            y  x         z
-        0  1  1  1.000941
-        1  2  2  3.998049
-        2  2  3  7.998698
+        0  1  1  1.009406
+        1  2  2  3.980490
+        2  2  3  7.986978
 
         If we use columns in the dataframe, that are not part of the expression,
         we will get an error message:
@@ -92,7 +90,6 @@ def equation_experiment(
         # Include all parameters here:
         expression=expression,
         name=name,
-        added_noise=added_noise,
         random_state=random_state,
     )
 
@@ -119,7 +116,7 @@ def equation_experiment(
 
     def experiment_runner(
         conditions: Union[pd.DataFrame, np.ndarray, np.recarray],
-        added_noise_=added_noise,
+        added_noise=0.01,
     ):
         """A function which simulates noisy observations."""
         x = conditions
@@ -143,7 +140,7 @@ def equation_experiment(
             )
 
         out = f_numpy(*x_.T)
-        out = out + rng.normal(0, added_noise_, size=out.shape)
+        out = out + rng.normal(0, added_noise, size=out.shape)
         if isinstance(x, pd.DataFrame):
             _res = pd.DataFrame(x_, columns=x_sorted.columns)
             res = x
