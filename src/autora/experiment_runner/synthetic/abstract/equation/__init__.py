@@ -145,7 +145,7 @@ def equation_experiment(
             _res = pd.DataFrame(x_, columns=x_sorted.columns)
             res = x
             for col in x_sorted.columns:
-                res[col] = _res[col]
+                res[col] = list(_res[col])
         else:
             if rename_output_columns:
                 res = pd.DataFrame(x_, columns=[el.name for el in args])
