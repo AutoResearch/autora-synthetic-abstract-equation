@@ -52,38 +52,71 @@ def equation_experiment(
         Then we use this expression in our experiment
         >>> experiment = equation_experiment(expr, [iv_x, iv_y], dv_z, random_state=42)
 
-        To run an experiment, we can either use a numpy array:
-        >>> experiment.experiment_runner(np.array([[1, 1], [2 ,2], [2 ,3]]))
+        To run an experiment on some conditions, first we define those conditions as a pandas
+        dataframe:
+        >>> conditions = pd.DataFrame({'x':[1, 2, 3], 'y': [2, 3, 4]})
+        >>> conditions
+           x  y
+        0  1  2
+        1  2  3
+        2  3  4
+
+        Then to run the experiment, we pass that dataframe to the `.experiment_runner` function:
+        >>> experiment.experiment_runner(conditions)
+           x  y          z
+        0  1  2   1.003047
+        1  2  3   7.989600
+        2  3  4  81.007505
+
+        If the names the expression requires are not part of the dataframe, we get an error message:
+        >>> experiment.experiment_runner(
+        ...     pd.DataFrame({'z':[1, 2, 2], 'x': [1, 2, 3]})
+        ... )  # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
+        Traceback (most recent call last):
+        ...
+        Exception: Variables of expression x**y not found in columns of dataframe with columns
+        Index(['z', 'x'], dtype='object')
+
+
+        Each time an experiment is initialized with the same random_state, it should produce the
+        same results:
+        >>> experiment = equation_experiment(expr, [iv_x, iv_y], dv_z, random_state=42)
+        >>> results42 = experiment.experiment_runner(conditions)
+        >>> results42
+           x  y          z
+        0  1  2   1.003047
+        1  2  3   7.989600
+        2  3  4  81.007505
+
+        We can specify the random_state for a particular run to reproduce it:
+        >>> results42_reproduced = experiment.experiment_runner(conditions, random_state=42)
+        >>> pd.DataFrame.equals(results42, results42_reproduced)
+        True
+
+        If we don't specify the random_state, it produces different values:
+        >>> experiment.experiment_runner(conditions)
+           x  y          z
+        0  1  2   1.009406
+        1  2  3   7.980490
+        2  3  4  80.986978
+
+        An alternative input format for the experiment runner is a numpy array (not recommended):
+        >>> experiment.experiment_runner(np.array([[1, 1], [2, 2], [2, 3]]))
+           x  y         z
+        0  1  1  1.001278
+        1  2  2  3.996838
+        2  2  3  7.999832
+
+        But we have to be careful with the order of the arguments in the runner. The arguments
+        will be sorted alphabetically.
+        In the following case the first entry of the numpy array is still x:
+        >>> expr = y ** x
+        >>> experiment.experiment_runner(np.array([[1, 1], [2, 2] , [2, 3]]), random_state=42)
            x  y         z
         0  1  1  1.003047
         1  2  2  3.989600
         2  2  3  8.007505
 
-        But we have to be carefull with the order of the arguments in the runner. The arguments
-        will be sorted alphabetically.
-        In the following case the first entry of the numpy array is still x:
-        >>> expr = y ** x
-        >>> experiment = equation_experiment(expr, [iv_x, iv_y], dv_z, random_state=42)
-        >>> experiment.experiment_runner(np.array([[1, 1], [2, 2] , [2, 3]]))
-           x  y         z
-        0  1  1  1.003047
-        1  2  2  3.989600
-        2  2  3  9.007505
-
-        We can be more secure by using Pandas Dataframes as an input:
-        >>> experiment.experiment_runner(pd.DataFrame({'y':[1, 2, 2], 'x': [1, 2, 3]}))
-           y  x         z
-        0  1  1  1.009406
-        1  2  2  3.980490
-        2  2  3  7.986978
-
-        If we use columns in the dataframe, that are not part of the expression,
-        we will get an error message:
-        >>> experiment.experiment_runner(pd.DataFrame({'z':[1, 2, 2], 'x': [1, 2, 3]}))
-        Traceback (most recent call last):
-        ...
-        Exception: Variables of expression y**x not found in columns of dataframe with columns\
- Index(['z', 'x'], dtype='object')
     """
 
     params = dict(
