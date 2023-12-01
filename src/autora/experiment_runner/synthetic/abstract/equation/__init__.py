@@ -117,8 +117,15 @@ def equation_experiment(
     def experiment_runner(
         conditions: Union[pd.DataFrame, np.ndarray, np.recarray],
         added_noise=0.01,
+        random_state=None,
     ):
         """A function which simulates noisy observations."""
+
+        if random_state is not None:
+            rng_ = np.random.default_rng(random_state)
+        else:
+            rng_ = rng  # use the RNG from the outer scope
+
         x = conditions
         if isinstance(x, pd.DataFrame):
             x = x.copy()
@@ -140,7 +147,7 @@ def equation_experiment(
             )
 
         out = f_numpy(*x_.T)
-        out = out + rng.normal(0, added_noise, size=out.shape)
+        out = out + rng_.normal(0, added_noise, size=out.shape)
         if isinstance(x, pd.DataFrame):
             _res = pd.DataFrame(x_, columns=x_sorted.columns)
             res = x
