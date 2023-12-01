@@ -1,7 +1,7 @@
 import warnings
 from functools import partial
 from itertools import product
-from typing import List, Union, Optional
+from typing import List, Optional, Union
 
 import numpy as np
 import pandas as pd
