@@ -61,15 +61,15 @@ def equation_experiment(
         1  2  3
         2  3  4
 
-        Then to run the experiment, we pass that dataframe to the `.experiment_runner` function:
-        >>> experiment.experiment_runner(conditions)
+        Then to run the experiment, we pass that dataframe to the `.run` function:
+        >>> experiment.run(conditions)
            x  y          z
         0  1  2   1.003047
         1  2  3   7.989600
         2  3  4  81.007505
 
         If the names the expression requires are not part of the dataframe, we get an error message:
-        >>> experiment.experiment_runner(
+        >>> experiment.run(
         ...     pd.DataFrame({'z':[1, 2, 2], 'x': [1, 2, 3]})
         ... )  # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
         Traceback (most recent call last):
@@ -81,7 +81,7 @@ def equation_experiment(
         Each time an experiment is initialized with the same random_state, it should produce the
         same results:
         >>> experiment = equation_experiment(expr, [iv_x, iv_y], dv_z, random_state=42)
-        >>> results42 = experiment.experiment_runner(conditions)
+        >>> results42 = experiment.run(conditions)
         >>> results42
            x  y          z
         0  1  2   1.003047
@@ -89,19 +89,19 @@ def equation_experiment(
         2  3  4  81.007505
 
         We can specify the random_state for a particular run to reproduce it:
-        >>> results42_reproduced = experiment.experiment_runner(conditions, random_state=42)
+        >>> results42_reproduced = experiment.run(conditions, random_state=42)
         >>> pd.DataFrame.equals(results42, results42_reproduced)
         True
 
         If we don't specify the random_state, it produces different values:
-        >>> experiment.experiment_runner(conditions)
+        >>> experiment.run(conditions)
            x  y          z
         0  1  2   1.009406
         1  2  3   7.980490
         2  3  4  80.986978
 
         An alternative input format for the experiment runner is a numpy array (not recommended):
-        >>> experiment.experiment_runner(np.array([[1, 1], [2, 2], [2, 3]]))
+        >>> experiment.run(np.array([[1, 1], [2, 2], [2, 3]]))
            x  y         z
         0  1  1  1.001278
         1  2  2  3.996838
@@ -111,7 +111,7 @@ def equation_experiment(
         will be sorted alphabetically.
         In the following case the first entry of the numpy array is still x:
         >>> expr = y ** x
-        >>> experiment.experiment_runner(np.array([[1, 1], [2, 2] , [2, 3]]), random_state=42)
+        >>> experiment.run(np.array([[1, 1], [2, 2] , [2, 3]]), random_state=42)
            x  y         z
         0  1  1  1.003047
         1  2  2  3.989600
@@ -147,7 +147,7 @@ def equation_experiment(
     # Define experiment runner
     rng = np.random.default_rng(random_state)
 
-    def experiment_runner(
+    def run(
         conditions: Union[pd.DataFrame, np.ndarray, np.recarray],
         added_noise=0.01,
         random_state=None,
@@ -195,7 +195,7 @@ def equation_experiment(
         res[y.name] = out
         return res
 
-    ground_truth = partial(experiment_runner, added_noise_=0.0)
+    ground_truth = partial(run, added_noise_=0.0)
     """A function which simulates perfect observations"""
 
     def domain():
@@ -247,7 +247,7 @@ def equation_experiment(
         name=name,
         description=equation_experiment.__doc__,
         variables=variables,
-        experiment_runner=experiment_runner,
+        run=run,
         ground_truth=ground_truth,
         domain=domain,
         plotter=plotter,
