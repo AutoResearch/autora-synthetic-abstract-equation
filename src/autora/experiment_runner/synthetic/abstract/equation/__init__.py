@@ -195,7 +195,7 @@ def equation_experiment(
         res[y.name] = out
         return res
 
-    ground_truth = partial(run, added_noise_=0.0)
+    ground_truth = partial(run, added_noise=0.0)
     """A function which simulates perfect observations"""
 
     def domain():
